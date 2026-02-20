@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useChatStore } from '../store/useChatStore'
 import { useAuthStore } from '../store/useAuthStore'
 import SidebarSkeleton from './skeletons/SidebarSkeleton'
@@ -15,9 +15,17 @@ const Sidebar = () => {
 		getUsers()
 	}, [getUsers])
 
-	const filteredUsers = showOnlineOnly
-		? users.filter(user => onlineUsers.includes(user._id))
-		: users
+	const filteredUsers = useMemo(() => {
+		const base = showOnlineOnly
+			? users.filter(user => onlineUsers.includes(user._id))
+			: users
+		
+		return [...base].sort((a, b) => {
+			const aOnline = onlineUsers.includes(a._id)
+			const bOnline = onlineUsers.includes(b._id)
+			return (bOnline ? 1 : 0) - (aOnline ? 1 : 0)
+		})
+	}, [users, onlineUsers, showOnlineOnly])
 
 	if (isUsersLoading) return <SidebarSkeleton />
 
